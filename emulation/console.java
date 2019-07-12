@@ -14,8 +14,8 @@ package emulation;
  * 
  * 
  */
-public class Logger {
-
+public class console {
+	// I know this breaks naming conventions but I'm just too used to javascript at this point
 	public static int priorityLevel = 0;
 
 	/**
@@ -33,5 +33,8 @@ public class Logger {
 				System.out.println(message);
 			}
 		}
+	}
+	public static void log(Object message) {
+		log(0, message);
 	}
 }
