@@ -3,8 +3,6 @@ package emulation.fhdl;
 import java.util.Arrays;
 import java.util.Stack;
 
-import emulation.Bus;
-
 public class MathEngine {
 	/**
 	 * purpose: create a logical math engine for fhdl
@@ -13,7 +11,7 @@ public class MathEngine {
 	private static final String bOperators = "+|&*^";
 	private static final String uOperators = "!-";
 	private static final String specialOperators = "()";
-	private static final String legalVarNameStarters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
+	public static final String legalVarNameStarters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
 
 	private	ScopeController scope;
 
@@ -57,11 +55,11 @@ public class MathEngine {
 			String indexString = token.substring(token.indexOf("[") + 1, token.indexOf("]"));
 			int index = decode(indexString);
 			String variable = token.substring(0, token.indexOf("["));
-			Bus bb = scope.getVariable(variable);
+			Bus bb = (Bus) scope.getVariable(variable);
 			bus.set(bb.getBitValue(index));
 		} else if (legalVarNameStarters.contains(token.substring(0, 1))) {
 			// variable
-			Bus bb = scope.getVariable(token);
+			Bus bb = (Bus) scope.getVariable(token);
 			bus.set(bb.toInt());
 		} else {
 			int val = decode(token);

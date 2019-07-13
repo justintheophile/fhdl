@@ -1,20 +1,19 @@
 package emulation;
 
+import emulation.fhdl.Bus;
 import emulation.fhdl.MathEngine;
 import emulation.fhdl.ScopeController;
+import emulation.fhdl.Script;
 
 public class Main {
 
 	public static void main(String[] args) {
 
 		ScopeController scope = new ScopeController();
-		scope.enterScope("root");
-		scope.createVariable("x", new Bus("0101"));
 		MathEngine engine = new MathEngine(scope);
-		
-		
-		console.log(engine.evaluate(8, "0b101001 | 0b1011"));
-		
+		Script script = new Script(scope, engine);
+		script.runFile("C:\\Users\\hunte\\OneDrive\\DDD\\emulation\\src\\scripts\\test.fhdl");
+		//console.log(1, scope);
 	}
 
 	

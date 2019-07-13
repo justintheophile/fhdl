@@ -1,6 +1,8 @@
-package emulation;
+package emulation.fhdl;
 
-public class Bus{
+import emulation.Variable;
+
+public class Bus extends Variable{
 	Bit[] bits; //[width] downto [0]
 	public Bus(int width, int val) {
 		bits = new Bit[width];
@@ -38,6 +40,9 @@ public class Bus{
 		set(b?"1" : "0");
 	}
 	
+	public void set(Bus b) {
+		set(b.toInt());
+	}
 	public boolean getBitValue(int index) {
 		return bits[index].getBoolValue();
 	}
@@ -108,5 +113,16 @@ public class Bus{
 	
 	public Bus twosCompliment() {
 		return new Bus( this.bits.length, this.not().toInt() +1);
+	}
+
+	public int getWidth() {
+		// TODO Auto-generated method stub
+		return bits.length;
+	}
+
+	@Override
+	public void set(Variable v) {
+		if(v instanceof Bus)
+			set(((Bus) v));
 	}
 }
