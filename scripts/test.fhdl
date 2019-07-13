@@ -10,5 +10,6 @@ end
 
 instance myComp2 = Component2(0b1000, 0b1001);
 bus1 newZ = myComp2.z[0]; 
-print(4, 0b1010 < 1);
+
+print(4, 11 < 1);
 print(4, 0b1110 > 1); 

@@ -10,7 +10,7 @@ public class MathEngine {
 	 * purpose: create a logical math engine for fhdl
 	 */
 
-	private static final String[] bOperators = "+ | & * ^ > <".split(" ");
+	private static final String[] bOperators = "+ | & * ^ > < :".split(" ");
 	private static final String[] uOperators = "! -".split(" ");
 	private static final String[] specialOperators = "( )".split(" ");
 	public static final String[] legalVarNameStarters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
@@ -42,6 +42,8 @@ public class MathEngine {
 					temp = left.rightShift(right);
 				}else if (token.equals("<")) {
 					temp = left.leftShift(right);
+				}else if (token.equals(":")) {
+					temp = new Bus(left.getWidth(), left.toInt() == right.toInt() ? 1 : 0);
 				}
 				stack.push(temp);
 			} else {
@@ -79,7 +81,7 @@ public class MathEngine {
 		return bus;
 	}
 
-	private static int decode(String text) {
+	public static int decode(String text) {
 		// from https://stackoverflow.com/a/13549627/4674423
 		return text.toLowerCase().startsWith("0b") ? Integer.parseInt(text.substring(2), 2) : Integer.decode(text);
 	}

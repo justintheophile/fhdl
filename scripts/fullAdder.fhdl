@@ -1,0 +1,29 @@
+entity Adder(bus1 cin, bus1 a, bus1 b)
+	bus1 sum_ = (a ^ b) ^ cin;
+	bus1 cout_ = a & b | cin & (a ^ b);
+end
+
+entity FourAdder(bus1 cin, bus4 a, bus4 b)
+	
+	instance add1 = Adder(cin, a[0], b[0]);
+	instance add2 = Adder(add1.cout_, a[1], b[1]);
+	instance add3 = Adder(add2.cout_, a[2], b[2]);
+	instance add4 = Adder(add3.cout_, a[3], b[3]);
+	
+	bus4 sum_ = add4.sum_ < 3 | add3.sum_ < 2 | add2.sum_ < 1 | add1.sum_;
+	bus4 cout_ = add4.cout_;
+end
+
+bus4 n;
+#top
+	
+	instance a = FourAdder(0, n, 1);
+	n = a.sum_;
+	print(n.width, n);
+	
+	bus4 condition = (n : 0xf);
+	goif(stop, condition); 
+	sleep(10);
+	
+goto(top);
+#stop

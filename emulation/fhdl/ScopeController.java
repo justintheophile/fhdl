@@ -2,8 +2,11 @@ package emulation.fhdl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import emulation.Variable;
+import emulation.console;
 
 public class ScopeController {
 
@@ -22,14 +25,26 @@ public class ScopeController {
 	}
 
 	public void enterScope() {
-		enterScope("#"+scopes);
+		enterScope("#" + scopes);
 	}
 
-	
 	public void exitScope() {
+		console.log(0,"exiting scope: "+ getScope());
+		ArrayList<String> marked = new ArrayList<String>();
+		Iterator it = variables.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry pair = (Map.Entry) it.next();
+			if(pair.getKey().toString().startsWith(getScope()) && !pair.getKey().toString().endsWith("_")) {
+				marked.add(pair.getKey().toString());
+			}
+		}
+		for(String key : marked) {
+			console.log(0, "removing: " + key);
+			variables.remove(key);
+		}
 		scopeStack.remove(scopeStack.size() - 1);
 	}
-	
+
 	public String getTopScope() {
 		return scopeStack.get(scopeStack.size() - 1);
 	}
@@ -45,31 +60,30 @@ public class ScopeController {
 	public String getScope() {
 		return getScope(0);
 	}
-	
+
 	public void createVariable(String name, Variable bus) {
 		String scope = getScope();
-		variables.put(scope+name, bus);
+		variables.put(scope + name, bus);
 	}
-	
+
 	public Variable getVariable(String name) {
-		for(int i=0; i < scopeStack.size(); i++) {
-			String variable = getScope(i)+name;
-			if(variables.containsKey(variable)) {
+		for (int i = 0; i < scopeStack.size(); i++) {
+			String variable = getScope(i) + name;
+			if (variables.containsKey(variable)) {
 				return variables.get(variable);
 			}
 		}
 		// if here... varaible does not exist in visible scope
 		return null;
 	}
-	
-	
+
 	public void setVariable(String name, Variable bus) {
-		Variable b = variables.get(getScope()+name);
+		Variable b = variables.get(getScope() + name);
 		b.set(bus);
 	}
-	
+
 	public String toString() {
 		return variables.toString();
 	}
-	
+
 }

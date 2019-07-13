@@ -3,11 +3,12 @@ package emulation.fhdl;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 import emulation.console;
 
 public class Script {
-	private static final String keywords[] = ("entity in out import end instance new print "
+	private static final String keywords[] = ("# entity goto goif sleep import end instance new print "
 			+ "bus1 bus2 bus3 bus4 bus5 bus6 bus7 bus8 bus9 bus10 bus11 bus12 bus13 bus14 bus15 bus16 bus17 bus18 bus19 bus20 bus21 bus22 bus23 bus24 bus25 bus26 bus27 bus28 bus29 bus30 bus31 bus32")
 					.split(" ");
 	private static final String keysymbols[] = "{ } = ; ( ) , . + ^ ! * & |".split(" ");
@@ -97,10 +98,9 @@ public class Script {
 
 						// get entity template
 						Entity template = (Entity) scope.getVariable(entityName);
-					
+
 						// enter instance scope
 						scope.enterScope(varName);
-
 						// set parameters
 						String[] params = entityParameters.split(",");
 						for (int j = 0; j < params.length; j++) {
@@ -113,17 +113,54 @@ public class Script {
 						run(template.body);
 
 						// exit instance scope
-					}else if(token.equals("print")) {
+					} else if (token.equals("print")) {
 						String params = getUntillTerminate(script, i, ")");
 						i += params.length();
 						params = params.trim().substring(1, params.length() - 1);
 						String[] split = params.split(",");
 						int lineNumber = script.substring(0, i).split("\n").length;
-						console.log(3, lineNumber+":"+i +" -> " + math.evaluate(math.evaluate(64, split[0]).toInt(), split[1].trim()));
+						console.log(3, lineNumber + ":" + i + " -> "
+								+ math.evaluate(math.evaluate(64, split[0]).toInt(), split[1].trim()));
+					} else if (token.equals("goto")) {
+						String params = getUntillTerminate(script, i, ")");
+						i += params.length();
+						params = params.trim().substring(1, params.length() - 1);
+						String[] split = params.split(",");
+						String tag = split[0].trim();
 
+						if (script.contains("#" + tag)) {
+							i = script.indexOf("#" + tag);
+						}
+					} else if (token.equals("goif")) {
+						String params = getUntillTerminate(script, i, ")");
+						i += params.length();
+						params = params.trim().substring(1, params.length() - 1);
+						String[] split = params.split(",");
+						String tag = split[0].trim();
+						String condition = split[1].trim();
+						if (math.evaluate(16, condition).toInt() != 0) {
+							if (script.contains("#" + tag)) {
+								i = script.indexOf("#" + tag);
+							}
+						}
+					}else if(token.equals("sleep")) {
+						String params = getUntillTerminate(script, i, ")");
+						i += params.length();
+						params = params.trim().substring(1, params.length() - 1);
+						String[] split = params.split(",");
+						String time = split[0].trim();
+						int millis = math.evaluate(32, time).toInt();
+						try {
+							Thread.sleep(millis);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 				} else {
 					if (MathEngine.arrayContains(keysymbols, token)) {
+
+					} else if (token.startsWith("#")) {
 
 					} else {
 						String var = getUntillTerminate(script, i, ";");
@@ -136,6 +173,7 @@ public class Script {
 	}
 
 	public void processVariable(String var) {
+
 		String type = "";
 		String name = "";
 		String value = "";
@@ -168,8 +206,13 @@ public class Script {
 
 			if (bus != null) {
 				scope.createVariable(name, bus);
-				Bus w = new Bus(64, bus.getWidth());
-				scope.createVariable(name+".width", w);
+				Bus w = new Bus(8, bus.getWidth());
+				if (name.endsWith("_")) {
+					scope.createVariable(name + ".width_", w);
+				} else {
+					scope.createVariable(name + ".width", w);
+
+				}
 			}
 		} else {
 			Bus bus = null;
@@ -182,7 +225,6 @@ public class Script {
 				target.set(bus);
 			}
 		}
-
 	}
 
 	public String getUntillTerminate(String script, int index, String terminate) {
