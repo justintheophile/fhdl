@@ -16,7 +16,7 @@ package emulation;
  */
 public class console {
 	// I know this breaks naming conventions but I'm just too used to javascript at this point
-	public static int priorityLevel = 2;
+	public static int priorityLevel = 1;
 
 	/**
 	 * 
@@ -26,7 +26,15 @@ public class console {
 	 *            what is to be sent to the console
 	 */
 	public static void log(int priority, Object message) {
+		 
 		if (priorityLevel >= 0 && priority >= priorityLevel) {
+			
+			String fullClassName = Thread.currentThread().getStackTrace()[2].getClassName();
+		    String className = fullClassName.substring(fullClassName.lastIndexOf(".") + 1);
+		    String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+		    int lineNumber = Thread.currentThread().getStackTrace()[2].getLineNumber();
+		    message = className+": " + lineNumber  + "> " + message;
+			
 			if (priority >= 5) {
 				System.err.println(message);
 			} else {

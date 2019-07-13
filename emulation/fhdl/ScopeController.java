@@ -25,7 +25,7 @@ public class ScopeController {
 	}
 
 	public void enterScope() {
-		enterScope("#" + scopes);
+		enterScope("F." + scopes);
 	}
 
 	public void exitScope() {
@@ -39,7 +39,8 @@ public class ScopeController {
 			}
 		}
 		for(String key : marked) {
-			console.log(0, "removing: " + key);
+			if(key.contains("sum_"))
+			console.log(1, "removing: " + key);
 			variables.remove(key);
 		}
 		scopeStack.remove(scopeStack.size() - 1);

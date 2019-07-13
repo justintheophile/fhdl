@@ -38,11 +38,16 @@ public class MathEngine {
 					temp = left.and(right);
 				} else if (token.equals("^")) {
 					temp = left.xor(right);
-				}else if (token.equals(">")) {
-					temp = left.rightShift(right);
-				}else if (token.equals("<")) {
-					temp = left.leftShift(right);
-				}else if (token.equals(":")) {
+				} else if (token.equals(">")) {
+					Bus bb = new Bus(left);
+					bb = left.rightShift(right);
+					temp.set(bb);
+
+				} else if (token.equals("<")) {
+					Bus bb = new Bus(left);
+					bb = left.leftShift(right);
+					temp.set(bb);
+				} else if (token.equals(":")) {
 					temp = new Bus(left.getWidth(), left.toInt() == right.toInt() ? 1 : 0);
 				}
 				stack.push(temp);
@@ -62,14 +67,26 @@ public class MathEngine {
 		if (token.contains("[")) {
 			// bit select
 			String indexString = token.substring(token.indexOf("[") + 1, token.indexOf("]"));
-			int index = decode(indexString);
 			String variable = token.substring(0, token.indexOf("["));
 			Bus bb = (Bus) scope.getVariable(variable);
-			bus.set(bb.getBitValue(index));
+			if (!indexString.contains("..")) {
+				int index = decode(indexString);
+				
+				bus.set(bb.getBitValue(index));
+			}else {
+				int high = decode(indexString.substring(0, indexString.indexOf("..")).trim());
+				int low = decode(indexString.substring(indexString.indexOf("..")+2).trim());
+				Bus sub = bb.subBus(high, low);
+				bus.set(sub);
+			}
 		} else if (arrayContains(legalVarNameStarters, token.substring(0, 1))) {
 			// variable
-			Bus bb = (Bus) scope.getVariable(token);
-			bus.set(bb.toInt());
+			Bus v = (Bus) scope.getVariable(token);
+			if (v == null) {
+				// throw error here
+			}
+			// bus.setWidth(v.getWidth());
+			bus.set(v);
 		} else {
 			int val = decode(token);
 			bus.set(val);

@@ -5,10 +5,7 @@ import emulation.Variable;
 public class Bus extends Variable{
 	Bit[] bits; //[width] downto [0]
 	public Bus(int width, int val) {
-		bits = new Bit[width];
-		for(int i=0; i < width; i++) {
-			bits[i] = new Bit(0);
-		}
+		setWidth(width);
 		set(val);
 	}
 	
@@ -24,6 +21,22 @@ public class Bus extends Variable{
 	public Bus(Bus b) {
 		this(b.getWidth(), 0);
 		set(b);
+	}
+	
+	public Bus subBus(int high, int low) {
+		Bus b = new Bus(high-low+1, 0);
+		for(int i= low; i <= high; i++) {
+			b.bits[i-low] = this.bits[i];
+		}
+		return b;
+	}
+	
+	public void setWidth(int width) {
+		bits = new Bit[width];
+
+		for(int i=0; i < width; i++) {
+			bits[i] = new Bit(0);
+		}
 	}
 	
 	public void set(String s) {
@@ -71,11 +84,9 @@ public class Bus extends Variable{
 	
 
 	
-	public Bus or(Bus b) {
-		if(b.bits.length != this.bits.length) return null; // maybe throw something
-		
+	public Bus or(Bus b) {		
 		Bus newBus = new Bus(this.bits.length);
-		for(int i=0; i< b.bits.length; i++) {
+		for(int i=0; i< Math.min(b.getWidth(), this.getWidth()); i++) {
 			newBus.bits[i] = b.bits[i].or(this.bits[i]);
 		}
 
@@ -83,10 +94,9 @@ public class Bus extends Variable{
 	}
 
 	public Bus and(Bus b) {
-		if(b.bits.length != this.bits.length) return null; // maybe throw something
 		
 		Bus newBus = new Bus(this.bits.length);
-		for(int i=0; i< b.bits.length; i++) {
+		for(int i=0; i< Math.min(b.getWidth(), this.getWidth());i++) {
 			newBus.bits[i] = b.bits[i].and(this.bits[i]);
 		}
 
@@ -94,10 +104,9 @@ public class Bus extends Variable{
 	}
 	
 	public Bus xor(Bus b) {
-		if(b.bits.length != this.bits.length) return null; // maybe throw something
 		
 		Bus newBus = new Bus(this.bits.length);
-		for(int i=0; i< b.bits.length; i++) {
+		for(int i=0; i< Math.min(b.getWidth(), this.getWidth()); i++) {
 			newBus.bits[i] = b.bits[i].xor(this.bits[i]);
 		}
 

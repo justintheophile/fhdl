@@ -12,8 +12,7 @@ public class Main {
 		ScopeController scope = new ScopeController();
 		MathEngine engine = new MathEngine(scope);
 		Script script = new Script(scope, engine);
-		script.runFile("C:\\Users\\hunte\\OneDrive\\DDD\\emulation\\src\\scripts\\fullAdder.fhdl");
-		//console.log(1, scope);
+		script.runFile("C:\\Users\\hunte\\OneDrive\\DDD\\emulation\\src\\scripts\\alu.fhdl");
 	}
 
 	

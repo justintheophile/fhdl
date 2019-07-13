@@ -1,0 +1,39 @@
+
+entity Adder(bus1 cin, bus1 a, bus1 b)
+	# add a and b together 
+	
+	bus1 sum_ = (a ^ b) ^ cin;
+	bus1 cout_ = a & b | cin & (a ^ b);
+end
+
+entity FourAdder(bus1 cin, bus4 a, bus4 b)
+	# 4bit adder
+	
+	instance add1 = Adder(cin, a[0], b[0]);
+	instance add2 = Adder(add1.cout_, a[1], b[1]);
+	instance add3 = Adder(add2.cout_, a[2], b[2]);
+	instance add4 = Adder(add3.cout_, a[3], b[3]);
+	
+	bus4 sum_ = add4.sum_ < 3 | add3.sum_ < 2 | add2.sum_ < 1 | add1.sum_;
+	bus1 cout_ = add4.cout_;
+end
+
+entity EightAdder(bus1 cin, bus8 a, bus8 b)
+	# 8bit adder
+	instance add1 = FourAdder(cin, a[3..0], b[3..0]);
+	bus1 c = add1.cout_; # not sure why but this needs to be set like this
+	
+	instance add2 = FourAdder(c, a[7..4], b[7..4]);
+	
+	bus8 sum_ = add2.sum_ < 4 | add1.sum_;
+	bus1 cout_ = add2.cout_;
+end
+
+bus8 n;
+
+#top
+	instance add = EightAdder(0, n, 0x1);
+	n = add.sum_;
+	printHex(8, n);
+	sleep(50);
+	goto(top);
