@@ -21,6 +21,11 @@ public class Bus extends Variable{
 		set(value);
 	}
 	
+	public Bus(Bus b) {
+		this(b.getWidth(), 0);
+		set(b);
+	}
+	
 	public void set(String s) {
 		// binary
 		char[] array =  s.toCharArray();
@@ -98,6 +103,23 @@ public class Bus extends Variable{
 
 		return newBus;
 	}
+	
+	public Bus leftShift(Bus by) {
+		Bus copy = new Bus(this);
+		int val = copy.toInt();
+		val = val << by.toInt();
+		copy.set(val);
+		return copy;
+	}
+	
+	public Bus rightShift(Bus by) {
+		Bus copy = new Bus(this);
+		int val = copy.toInt();
+		val = val >> by.toInt();
+		copy.set(val);
+		return copy;
+	}
+	
 	
 	public Bus not() {		
 		Bus newBus = new Bus(this.bits.length);

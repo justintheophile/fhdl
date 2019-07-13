@@ -39,7 +39,7 @@ public class Script {
 			if (token.length() > 0) {
 //				console.log(token);
 
-				if (arrayContains(keywords, token)) {
+				if (MathEngine.arrayContains(keywords, token)) {
 					if (token.equals("entity")) {
 						// entity declaration
 
@@ -123,7 +123,7 @@ public class Script {
 
 					}
 				} else {
-					if (arrayContains(keysymbols, token)) {
+					if (MathEngine.arrayContains(keysymbols, token)) {
 
 					} else {
 						String var = getUntillTerminate(script, i, ";");
@@ -185,16 +185,6 @@ public class Script {
 
 	}
 
-	public boolean arrayContains(String[] array, String term) {
-		// utility method to see if term is contained in string array
-		for (String temp : array) {
-			if (temp.equals(term)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	public String getUntillTerminate(String script, int index, String terminate) {
 		// get tokens until token is equals to terminate
 		String expression = "";
@@ -218,7 +208,7 @@ public class Script {
 		String token = "";
 		for (int i = 0; i < part.length(); i++) {
 			char nextChar = part.charAt(i);
-			if (arrayContains(keysymbols, nextChar + "")) {
+			if (MathEngine.arrayContains(keysymbols, nextChar + "")) {
 				if (token.length() == 0) {
 					token += nextChar;
 					break;

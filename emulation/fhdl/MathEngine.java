@@ -3,17 +3,20 @@ package emulation.fhdl;
 import java.util.Arrays;
 import java.util.Stack;
 
+import emulation.console;
+
 public class MathEngine {
 	/**
 	 * purpose: create a logical math engine for fhdl
 	 */
 
-	private static final String bOperators = "+|&*^";
-	private static final String uOperators = "!-";
-	private static final String specialOperators = "()";
-	public static final String legalVarNameStarters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
+	private static final String[] bOperators = "+ | & * ^ > <".split(" ");
+	private static final String[] uOperators = "! -".split(" ");
+	private static final String[] specialOperators = "( )".split(" ");
+	public static final String[] legalVarNameStarters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+			.split("");
 
-	private	ScopeController scope;
+	private ScopeController scope;
 
 	public MathEngine(ScopeController scope) {
 		this.scope = scope;
@@ -23,18 +26,22 @@ public class MathEngine {
 		Stack<Bus> stack = new Stack<Bus>();
 		String[] tokens = convertToPostFix(expression).split(",");
 		for (String token : tokens) {
-			if (bOperators.contains(token)) {
-				Bus right =  stack.pop();
+			if (arrayContains(bOperators, token)) {
+				Bus right = stack.pop();
 				Bus left = stack.pop();
-				
+
 				Bus temp = new Bus(width, 0);
-				
-				if(token.equals("+") || token.equals("|") ) {
+
+				if (token.equals("+") || token.equals("|")) {
 					temp = left.or(right);
-				}else if(token.equals("*") || token.equals("&") ) {
+				} else if (token.equals("*") || token.equals("&")) {
 					temp = left.and(right);
-				}else if(token.equals("^")) {
+				} else if (token.equals("^")) {
 					temp = left.xor(right);
+				}else if (token.equals(">")) {
+					temp = left.rightShift(right);
+				}else if (token.equals("<")) {
+					temp = left.leftShift(right);
 				}
 				stack.push(temp);
 			} else {
@@ -48,7 +55,7 @@ public class MathEngine {
 		Bus bus = new Bus(width);
 		boolean not = token.startsWith("!");
 		boolean twos = token.startsWith("-");
-		if (not||twos)
+		if (not || twos)
 			token = token.substring(1);
 		if (token.contains("[")) {
 			// bit select
@@ -57,7 +64,7 @@ public class MathEngine {
 			String variable = token.substring(0, token.indexOf("["));
 			Bus bb = (Bus) scope.getVariable(variable);
 			bus.set(bb.getBitValue(index));
-		} else if (legalVarNameStarters.contains(token.substring(0, 1))) {
+		} else if (arrayContains(legalVarNameStarters, token.substring(0, 1))) {
 			// variable
 			Bus bb = (Bus) scope.getVariable(token);
 			bus.set(bb.toInt());
@@ -67,7 +74,7 @@ public class MathEngine {
 		}
 		if (not)
 			return bus.not();
-		if(twos)
+		if (twos)
 			return bus.twosCompliment();
 		return bus;
 	}
@@ -91,7 +98,7 @@ public class MathEngine {
 		// 2.
 		for (int i = 0; i < expression.length();) {
 			String token = getNextToken(expression, i);
-			if (bOperators.contains(token)) {
+			if (arrayContains(bOperators, token)) {
 				// 5.
 				boolean stop = false;
 				int tokenPrecedence = getPrecedence(token);
@@ -133,10 +140,10 @@ public class MathEngine {
 	}
 
 	private int getPrecedence(String operator) {
-		if (bOperators.contains(operator)) {
-			return bOperators.indexOf(operator) / 2;
-		} else if (uOperators.contains(operator)) {
-			return bOperators.length() * uOperators.indexOf(operator) / 2;
+		if (arrayContains(bOperators, operator)) {
+			return arrayIndexOf(bOperators, operator) / 2;
+		} else if (arrayContains(uOperators, operator)) {
+			return bOperators.length * arrayIndexOf(uOperators, operator) / 2;
 		}
 		return -1;
 	}
@@ -146,7 +153,7 @@ public class MathEngine {
 		String token = "";
 		for (int i = 0; i < part.length(); i++) {
 			char nextChar = part.charAt(i);
-			if (bOperators.contains(nextChar + "") || specialOperators.contains(nextChar + "")) {
+			if (arrayContains(bOperators, nextChar + "") || arrayContains(specialOperators, nextChar + "")) {
 				if (token.length() == 0) {
 					token += nextChar;
 					break;
@@ -158,5 +165,20 @@ public class MathEngine {
 			}
 		}
 		return token;
+	}
+
+	public static int arrayIndexOf(String[] array, String term) {
+		// utility method to see if term is contained in string array
+		for (int i = 0; i < array.length; i++) {
+			String temp = array[i];
+			if (temp.equals(term)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	public static boolean arrayContains(String[] array, String term) {
+		return arrayIndexOf(array, term) != -1;
 	}
 }

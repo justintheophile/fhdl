@@ -16,7 +16,7 @@ package emulation;
  */
 public class console {
 	// I know this breaks naming conventions but I'm just too used to javascript at this point
-	public static int priorityLevel = 1;
+	public static int priorityLevel = 2;
 
 	/**
 	 * 

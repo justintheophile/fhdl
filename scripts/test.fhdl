@@ -5,10 +5,10 @@ end
 entity Component2 (bus4 x, bus4 y)  
 	instance myComp = Component(); 
 
-	bus8 z = x+myComp.z; 
+	bus4 z = x + myComp.z; 
 end 
 
 instance myComp2 = Component2(0b1000, 0b1001);
 bus1 newZ = myComp2.z[0]; 
-
-print(myComp2.z.width, myComp2.z);
+print(4, 0b1010 < 1);
+print(4, 0b1110 > 1); 
