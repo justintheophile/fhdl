@@ -3,19 +3,20 @@ package emulation.fhdl;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
 import emulation.console;
 
 public class Script {
-	private static final String keywords[] = ("@ # entity goto goif sleep import end instance new print printHex printDec "
+	private static final String keywords[] = ("@ # entity goto goif nanoSleep milliSleep import end instance new print printHex printDec "
 			+ "bus1 bus2 bus3 bus4 bus5 bus6 bus7 bus8 bus9 bus10 bus11 bus12 bus13 bus14 bus15 bus16 bus17 bus18 bus19 bus20 bus21 bus22 bus23 bus24 bus25 bus26 bus27 bus28 bus29 bus30 bus31 bus32")
 					.split(" ");
 	private static final String keysymbols[] = "@ { } = ; ( ) , . + ^ ! * & |".split(" ");
 	private ScopeController scope;
 	private MathEngine math;
 	public int index;
-
+	private Stack<Integer> callStack = new Stack<Integer>();
 	public Script(ScopeController scope, MathEngine math) {
 		this.math = math;
 		this.scope = scope;
@@ -43,7 +44,7 @@ public class Script {
 			for (int i = 0; i < script.length();) {
 				String token = getNextToken(script, i);
 				i += token.length();
-				index = i;
+				
 				token = token.trim();
 				if (token.length() > 0) {
 //				console.log(token);
@@ -55,7 +56,7 @@ public class Script {
 							// get entity name
 							String name = getNextToken(script, i);
 							i += name.length();
-							index = i;
+							
 							name = name.trim();
 							console.log("name: " + name);
 
@@ -66,28 +67,31 @@ public class Script {
 							// get parameter names
 							String params = getUntillTerminate(script, i, ")");
 							i += params.length();
-							index = i;
+							
 							params = params.trim().substring(1, params.length() - 1);
 							console.log("params: " + params);
 
 							String[] parameters = params.split(",");
 							newEntity.parameters = parameters;
+							newEntity.start = i;
 
 							// get entity script and skip as to not execute empty entity
 							String entityScript = getUntillTerminate(script, i, "end");
 							i += entityScript.length();
-							index = i;
+							
 							newEntity.body = entityScript;
 						} else if (token.startsWith("bus")) {
 							// initialize variable
 							String var = getUntillTerminate(script, i, ";");
 							processVariable(token + " " + var);
 							i += var.length();
-							index = i;
+							
 						} else if (token.equals("end")) {
 							// ends entity definition
 							String entityName = scope.getTopScope();
 							scope.exitScope();
+							i = callStack.pop();
+							
 							console.log(entityName);
 						} else if (token.equals("instance")) {
 							// create instance of entity
@@ -95,19 +99,19 @@ public class Script {
 							// get instance name
 							String varName = getUntillTerminate(script, i, "=");
 							i += varName.length();
-							index = i;
+							
 							varName = varName.replace("=", "").trim();
 
 							// get entity template name
 							String entityName = getUntillTerminate(script, i, "(");
 							i += entityName.length();
-							index = i;
+							
 							entityName = entityName.replace("(", "").trim();
 
 							// get initialization parameters
 							String entityParameters = getUntillTerminate(script, i, ")");
 							i += entityParameters.length();
-							index = i;
+							
 							entityParameters = entityParameters.replace(")", "");
 							// get entity template
 							Entity template = (Entity) scope.getVariable(entityName);
@@ -123,51 +127,53 @@ public class Script {
 							}
 
 							// run instance template to initialize instance
-							new Script(scope, math).run(template.body);
-
+							callStack.push(i);
+							i = template.start;
+							
 							// exit instance scope
 						} else if (token.equals("print")) {
 							String params = getUntillTerminate(script, i, ")");
 							i += params.length();
-							index = i;
+							
 							params = params.trim().substring(1, params.length() - 1);
 							String[] split = params.split(",");
 							int lineNumber = script.substring(0, i).split("\n").length;
-							console.log(3, lineNumber + ":" + i + " -> "
+							console.log(3, "l"+lineNumber+ ": "
 									+ math.evaluate(math.evaluate(64, split[0]).toInt(), split[1].trim()));
 						} else if (token.equals("printHex")) {
 							String params = getUntillTerminate(script, i, ")");
 							i += params.length();
-							index = i;
+							
 							params = params.trim().substring(1, params.length() - 1);
 							String[] split = params.split(",");
 							int lineNumber = script.substring(0, i).split("\n").length;
-							console.log(3, lineNumber + ":" + i + " -> "
+							console.log(3, "l"+lineNumber + ": "
 									+ math.evaluate(math.evaluate(64, split[0]).toInt(), split[1].trim()).toHex());
 						} else if (token.equals("printDec")) {
 							String params = getUntillTerminate(script, i, ")");
 							i += params.length();
-							index = i;
+							
 							params = params.trim().substring(1, params.length() - 1);
 							String[] split = params.split(",");
 							int lineNumber = script.substring(0, i).split("\n").length;
-							console.log(3, lineNumber + ":" + i + " -> "
+							console.log(3, "l"+lineNumber + ": "
 									+ math.evaluate(math.evaluate(64, split[0]).toInt(), split[1].trim()).toInt());
 						} else if (token.equals("goto")) {
 							String params = getUntillTerminate(script, i, ")");
 							i += params.length();
-							index = i;
+							
 							params = params.trim().substring(1, params.length() - 1);
 							String[] split = params.split(",");
 							String tag = split[0].trim();
 
 							if (script.contains("#" + tag)) {
 								i = script.indexOf("#" + tag);
+								
 							}
 						} else if (token.equals("goif")) {
 							String params = getUntillTerminate(script, i, ")");
 							i += params.length();
-							index = i;
+							
 							params = params.trim().substring(1, params.length() - 1);
 							String[] split = params.split(",");
 							String tag = split[0].trim();
@@ -175,17 +181,28 @@ public class Script {
 							if (math.evaluate(16, condition).toInt() != 0) {
 								if (script.contains("#" + tag)) {
 									i = script.indexOf("#" + tag);
+									
 								}
 							}
-						} else if (token.equals("sleep")) {
+						} else if (token.equals("milliSleep")) {
 							String params = getUntillTerminate(script, i, ")");
 							i += params.length();
-							index = i;
+							
 							params = params.trim().substring(1, params.length() - 1);
 							String[] split = params.split(",");
 							String time = split[0].trim();
 							int millis = math.evaluate(32, time).toInt();
-								burn(millis);
+								milli(millis);
+							
+						}else if (token.equals("nanoSleep")) {
+							String params = getUntillTerminate(script, i, ")");
+							i += params.length();
+							
+							params = params.trim().substring(1, params.length() - 1);
+							String[] split = params.split(",");
+							String time = split[0].trim();
+							int nanos = math.evaluate(32, time).toInt();
+								nano(nanos);
 							
 						}else if (token.startsWith("#")) {
 							String comment = "";
@@ -199,7 +216,7 @@ public class Script {
 								}
 							}
 							i += comment.length();
-							index = i;
+							
 						} 
 					} else {
 						if (MathEngine.arrayContains(keysymbols, token)) {
@@ -216,27 +233,33 @@ public class Script {
 								}
 							}
 							i += comment.length();
-							index = i;
+							
 						} else {
 							String var = getUntillTerminate(script, i, ";");
 							processVariable(token + " " + var);
 							i += var.length();
-							index = i;
+							
 						}
 					}
 				}
+				index = i;
+
 			}
 		} catch (Exception e) {
 			int lineNumber = script.substring(0, index).split("\n").length;
 			int linei = ordinalIndexOf(script, "\n", lineNumber - 1);
-			int col = index - linei;
-			console.log(5, "error: " + lineNumber + ":" + col + " -> " + e.getMessage());
-			e.printStackTrace();
+			String line = script.substring(linei+1, ordinalIndexOf(script, "\n", lineNumber)).trim();
+			console.log(5, "error: \n line " + lineNumber + " ->  \n  > " + line);
+			
 			System.exit(0);
 		}
 	}
 	
-	private static void burn(int millis) {
+	private static void nano(int nanos) {
+		long start = System.nanoTime();
+		while(start + nanos >= System.nanoTime());
+	}
+	private static void milli(int millis) {
 		// from https://gist.github.com/bric3/314c3d01a80e5e3c158965dcd459a8a5
 	    long deadline = System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(millis);
 	    while(System.nanoTime()<deadline){};

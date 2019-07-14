@@ -24,7 +24,6 @@ entity EightAdder(bus1 cin, bus8 a, bus8 b)
 	bus1 c = add1.cout_; # not sure why but this needs to be set like this
 	
 	instance add2 = FourAdder(c, a[7..4], b[7..4]);
-	
 	bus8 sum_ = add2.sum_ < 4 | add1.sum_;
 	bus1 cout_ = add2.cout_;
 end
@@ -35,5 +34,8 @@ bus8 n;
 	instance add = EightAdder(0, n, 0x1);
 	n = add.sum_;
 	printHex(8, n);
-	sleep(50);
+	 
+	goif(stop, n:0xff);
 	goto(top);
+	
+#stop
