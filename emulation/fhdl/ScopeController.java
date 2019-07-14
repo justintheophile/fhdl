@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import emulation.Variable;
 import emulation.console;
 
 public class ScopeController {

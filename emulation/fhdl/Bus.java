@@ -1,7 +1,5 @@
 package emulation.fhdl;
 
-import emulation.Variable;
-
 public class Bus extends Variable{
 	Bit[] bits; //[width] downto [0]
 	public Bus(int width, int val) {

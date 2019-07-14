@@ -2,8 +2,6 @@ package emulation.fhdl;
 
 import java.util.HashMap;
 
-import emulation.Variable;
-
 public class Entity extends Variable{
 	public int start, end;
 	public String name;

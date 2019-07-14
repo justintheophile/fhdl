@@ -1,18 +1,18 @@
 package emulation;
 
-import emulation.fhdl.Bus;
-import emulation.fhdl.MathEngine;
-import emulation.fhdl.ScopeController;
 import emulation.fhdl.Script;
+import emulation.peripherals.Peripheral;
+import emulation.peripherals.VarScope;
 
 public class Main {
 
 	public static void main(String[] args) {
 
-		ScopeController scope = new ScopeController();
-		MathEngine engine = new MathEngine(scope);
-		Script script = new Script(scope, engine);
+		Script script = new Script();
+		Peripheral scope = new VarScope(script);
+		scope.on();
 		script.runFile("C:\\Users\\hunte\\OneDrive\\DDD\\emulation\\src\\scripts\\alu.fhdl");
+		scope.off();
 	}
 
 	

@@ -33,9 +33,8 @@ bus8 n;
 #top
 	instance add = EightAdder(0, n, 0x1);
 	n = add.sum_;
-	printHex(8, n);
-	 
+	# printHex(8, n);
+	milliSleep(100);
 	goif(stop, n:0xff);
 	goto(top);
-	
 #stop

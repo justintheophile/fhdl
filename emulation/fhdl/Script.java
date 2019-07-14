@@ -21,7 +21,17 @@ public class Script {
 		this.math = math;
 		this.scope = scope;
 	}
+	
+	public Script() {
+		this.scope = new ScopeController();
+		this.math = new MathEngine(scope);
+	
+	}
 
+	public ScopeController getScopeController() {
+		return scope;
+	}
+	
 	public void runFile(String path) {
 		String contents;
 		try {
@@ -259,7 +269,7 @@ public class Script {
 		long start = System.nanoTime();
 		while(start + nanos >= System.nanoTime());
 	}
-	private static void milli(int millis) {
+	public static void milli(int millis) {
 		// from https://gist.github.com/bric3/314c3d01a80e5e3c158965dcd459a8a5
 	    long deadline = System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(millis);
 	    while(System.nanoTime()<deadline){};
