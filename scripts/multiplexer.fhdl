@@ -5,5 +5,5 @@ entity TwoMultiplexer(bus1 selector, bus8 x1, bus8 x2)
 end
 
 
-instance multi = TwoMultiplexer(0b0, 0b01001010, 0b10100000);
+instance multi = TwoMultiplexer(0b1, 0b01001010, 0b10100000);
 print(8, multi.out_);

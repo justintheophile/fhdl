@@ -178,7 +178,6 @@ public class Script {
 							int lineNumber = script.substring(0, i).split("\n").length - lineOffset;
 							console.log(3, "l" + lineNumber + ": "
 									+ math.evaluate(math.evaluate(64, split[0]).toInt(), split[1].trim()));
-							scope.dump();
 						} else if (token.equals("printHex")) {
 							String params = getUntillTerminate(script, i, ")");
 							i += params.length();
@@ -367,7 +366,7 @@ public class Script {
 							e = e.trim();
 							if (e.startsWith("~")) {
 								// size of empty memory slots
-								int size = math.evaluate(width, e.replace("~", "")).toInt();
+								int size = math.evaluate(31, e.replace("~", "")).toInt();
 								for (int j = 0; j < size; j++) {
 									mem.add(new Bus(width, 0));
 								}
@@ -410,7 +409,7 @@ public class Script {
 						e = e.trim();
 						if (e.startsWith("~")) {
 							// size of empty memory slots
-							int size = math.evaluate(width, e.replace("~", "")).toInt();
+							int size = math.evaluate(31, e.replace("~", "")).toInt();
 							for (int j = 0; j < size; j++) {
 								mem.add(new Bus(width, 0));
 							}
@@ -434,7 +433,7 @@ public class Script {
 				String indexString = name.substring(name.indexOf("{") + 1, name.indexOf("}")).trim();
 				if (target != null) {
 					Mem m = (Mem) target;
-					int index = math.evaluate(m.width, indexString).toInt();
+					int index = math.evaluate(31, indexString).toInt();
 
 					m.list.get(index).set(math.evaluate(m.width, value));
 				} else {

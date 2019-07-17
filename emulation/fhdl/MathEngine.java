@@ -85,7 +85,7 @@ public class MathEngine {
 			String variable = token.substring(0, token.indexOf("{")).trim();
 			Mem bb = (Mem) scope.getVariable(variable);
 
-			Bus index = evaluate((int) bb.width, indexString);
+			Bus index = evaluate((int) 31, indexString);
 
 			bus.set((Bus) bb.get(index.toInt()));
 
