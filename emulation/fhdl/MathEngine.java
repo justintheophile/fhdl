@@ -71,22 +71,36 @@ public class MathEngine {
 			Bus bb = (Bus) scope.getVariable(variable);
 			if (!indexString.contains("..")) {
 				int index = decode(indexString);
-				
+
 				bus.set(bb.getBitValue(index));
-			}else {
+			} else {
 				int high = decode(indexString.substring(0, indexString.indexOf("..")).trim());
-				int low = decode(indexString.substring(indexString.indexOf("..")+2).trim());
+				int low = decode(indexString.substring(indexString.indexOf("..") + 2).trim());
 				Bus sub = bb.subBus(high, low);
 				bus.set(sub);
 			}
+		} else if (token.contains("{")) {
+			// bit select
+			String indexString = token.substring(token.indexOf("{") + 1, token.indexOf("}")).trim();
+			String variable = token.substring(0, token.indexOf("{")).trim();
+			Mem bb = (Mem) scope.getVariable(variable);
+
+			Bus index = evaluate((int) bb.width, indexString);
+
+			bus.set((Bus) bb.get(index.toInt()));
+
 		} else if (arrayContains(legalVarNameStarters, token.substring(0, 1))) {
 			// variable
-			Bus v = (Bus) scope.getVariable(token);
+			Variable v = scope.getVariable(token);
 			if (v == null) {
 				// throw error here
 			}
 			// bus.setWidth(v.getWidth());
-			bus.set(v);
+			if (v instanceof Bus)
+				bus.set((String) v.get());
+			else
+				bus.set(decode((String) v.get()));
+
 		} else {
 			int val = decode(token);
 			bus.set(val);

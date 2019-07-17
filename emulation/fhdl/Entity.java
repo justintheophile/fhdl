@@ -17,4 +17,13 @@ public class Entity extends Variable{
 	public void set(Variable v) {
 		// TODO Auto-generated method stub
 	}
+
+
+	public Object get() {
+		return null;
+	}
+
+	public Object get(int index) {
+		return null;
+	}
 }

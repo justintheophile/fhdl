@@ -85,5 +85,8 @@ public class ScopeController {
 	public String toString() {
 		return variables.toString();
 	}
-
+	
+	public void dump() {
+		console.log(1, this);
+	}
 }

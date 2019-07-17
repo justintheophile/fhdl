@@ -9,10 +9,11 @@ public class Main {
 	public static void main(String[] args) {
 
 		Script script = new Script();
-		Peripheral scope = new VarScope(script);
+		
+		Peripheral scope = (Peripheral) new VarScope(script, "n");
 		scope.on();
-		script.runFile("C:\\Users\\hunte\\OneDrive\\DDD\\emulation\\src\\scripts\\alu.fhdl");
-		scope.off();
+		script.runFile("C:/Users/hunte/OneDrive/DDD/emulation/src/scripts/rom.fhdl");
+//		scope.off();
 	}
 
 	

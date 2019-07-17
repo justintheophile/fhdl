@@ -154,4 +154,15 @@ public class Bus extends Variable{
 		if(v instanceof Bus)
 			set(((Bus) v));
 	}
+
+	@Override
+	public Object get() {
+		
+		return toString();
+	}
+
+
+	public Object get(int index) {
+		return getBitValue(index) ? new Bus(1, 1) : new Bus(1, 0);
+	}
 }

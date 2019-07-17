@@ -1,0 +1,19 @@
+import C:/Users/hunte/OneDrive/DDD/emulation/src/scripts/alu.fhdl;
+
+entity PrintRom (mem8 rom)
+    bus8 count;
+   
+    #top
+        printDec(8, rom{count});
+        instance add = EightAdder(0, count, 0x1);
+        count = add.sum_;
+        milliSleep(10);
+        goif(stop, count:rom);
+        goto(top);
+    #stop
+end
+
+ mem8 rom1 = {9,8,7,4,3,9,7};
+ instance printRom = PrintRom(rom1);
+
+

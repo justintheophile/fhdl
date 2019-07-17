@@ -27,14 +27,3 @@ entity EightAdder(bus1 cin, bus8 a, bus8 b)
 	bus8 sum_ = add2.sum_ < 4 | add1.sum_;
 	bus1 cout_ = add2.cout_;
 end
-
-bus8 n;
-
-#top
-	instance add = EightAdder(0, n, 0x1);
-	n = add.sum_;
-	# printHex(8, n);
-	milliSleep(100);
-	goif(stop, n:0xff);
-	goto(top);
-#stop
