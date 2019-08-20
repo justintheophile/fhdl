@@ -1,6 +1,6 @@
-package emulation.peripherals;
+package peripherals;
 
-import emulation.fhdl.Script;
+import fhdl.lang.Script;
 
 public abstract class Peripheral {
 	Script script;

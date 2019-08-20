@@ -1,4 +1,4 @@
-package emulation.fhdl;
+package fhdl.lang;
 
 public class ScriptException extends Exception {
 	private static final long serialVersionUID = 1L;

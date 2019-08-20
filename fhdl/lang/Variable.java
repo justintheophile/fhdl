@@ -1,4 +1,4 @@
-package emulation.fhdl;
+package fhdl.lang;
 
 public abstract class Variable {
 	public abstract void set(Variable v);

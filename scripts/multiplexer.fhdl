@@ -1,9 +1,17 @@
-entity TwoMultiplexer(bus1 selector, bus8 x1, bus8 x2)
-	bus8 tSelector = selector < 7 | selector < 6 | selector < 5 | selector < 4| selector < 3 | selector < 2 | selector < 1 | selector;
+entity Expand_8(bus1 a)
 	bus8 out_;
-	out_ = !tSelector & x1 | tSelector & x2; 
+	goif(zero, a:0);
+	out_ = !0;
+	#zero
 end
 
 
-instance multi = TwoMultiplexer(0b1, 0b01001010, 0b10100000);
-print(8, multi.out_);
+entity 2xMultiplexer(bus1 selector, bus8 a, bus8 b)
+	instance expanded = Expand_8 (selector);
+	bus8 sel = expanded.out_;
+	bus8 result_ = a & !sel | b & sel;
+end
+
+entity 4xMultiplexer(bus2 selector, bus8 a, bus8 b, bus8 c, bus8 d)
+	
+end

@@ -1,4 +1,6 @@
-package emulation;
+package fhdl.testing;
+
+import java.util.ArrayList;
 
 /**
  * 
@@ -26,6 +28,7 @@ public class console {
 	 * @param message  what is to be sent to the console
 	 */
 	public static void log(int priority, Object message) {
+		logs.add(message.toString());
 
 		if (priorityLevel >= 0 && priority >= priorityLevel) {
 			if (showInfo) {
@@ -46,4 +49,6 @@ public class console {
 	public static void log(Object message) {
 		log(0, message);
 	}
+
+	public static ArrayList<String> logs = new ArrayList<String>();
 }

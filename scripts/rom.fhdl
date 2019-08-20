@@ -1,16 +1,19 @@
-import C:/Users/hunte/OneDrive/DDD/emulation/src/scripts/alu.fhdl;
+import ./src/scripts/alu.fhdl;
 
 entity PrintMem (mem8 rom)
-    bus16 count;   
+    bus16 count;  
     #PrintRom.loop
 		printDec(31, rom{count});
-		instance add = Adder16(0, count, 0x1);
+		instance add = Adder_16(0, count, 0x1);
 		count = add.sum_;
 		goif(PrintRom.stop, count:rom);
 		goto(PrintRom.loop);
     #PrintRom.stop
 end
- 
-mem8 rom1 = {44};
+
+mem8 rom1 = {~10};
+rom1{3} = 67;
 instance printRom = PrintMem(rom1);
 
+instance mult = 2xMultiplexer(0, 170, 33);
+#printDec(8, mult.result_);

@@ -1,9 +1,7 @@
-package emulation.fhdl;
+package fhdl.lang;
 
 import java.util.Arrays;
 import java.util.Stack;
-
-import emulation.console;
 
 public class MathEngine {
 	/**
@@ -25,6 +23,7 @@ public class MathEngine {
 	public Bus evaluate(int width, String expression) {
 		Stack<Bus> stack = new Stack<Bus>();
 		String[] tokens = convertToPostFix(expression).split(",");
+		boolean not = false;
 		for (String token : tokens) {
 			if (arrayContains(bOperators, token)) {
 				Bus right = stack.pop();
@@ -51,6 +50,18 @@ public class MathEngine {
 					temp = new Bus(left.getWidth(), left.toInt() == right.toInt() ? 1 : 0);
 				}
 				stack.push(temp);
+			}else if(arrayContains(uOperators, token)) {
+				Bus top = stack.pop();
+				Bus temp = new Bus(width, 0);
+
+				if(token.equals("!")) {
+					temp = top.not();
+				}else if(token.equals("-")) {
+					temp = top.twosCompliment();
+				}
+				stack.push(temp);
+				
+
 			} else {
 				stack.push(getFromToken(width, token));
 			}
@@ -89,17 +100,18 @@ public class MathEngine {
 
 			bus.set((Bus) bb.get(index.toInt()));
 
-		} else if (arrayContains(legalVarNameStarters, token.substring(0, 1))) {
+		} else if (token.length() >= 1 && arrayContains(legalVarNameStarters, token.substring(0, 1))) {
 			// variable
 			Variable v = scope.getVariable(token);
 			if (v == null) {
 				// throw error here
+			} else {
+				// bus.setWidth(v.getWidth());
+				if (v instanceof Bus)
+					bus.set((String) v.get());
+				else
+					bus.set(decode((String) v.get()));
 			}
-			// bus.setWidth(v.getWidth());
-			if (v instanceof Bus)
-				bus.set((String) v.get());
-			else
-				bus.set(decode((String) v.get()));
 
 		} else {
 			int val = decode(token);
@@ -113,14 +125,21 @@ public class MathEngine {
 	}
 
 	public static int decode(String text) {
-		// from https://stackoverflow.com/a/13549627/4674423
-		return text.toLowerCase().startsWith("0b") ? Integer.parseInt(text.substring(2), 2) : Integer.decode(text);
+		// from https://stackoverflow.com/a/13549627/4674423\
+		int result = 0;
+		try {
+			result = text.toLowerCase().startsWith("0b") ? Integer.parseInt(text.substring(2), 2)
+					: Integer.decode(text);
+		} catch (NumberFormatException e) {
+
+		}
+		return result;
 	}
 
 	private String convertToPostFix(String expression) {
 		// algorithm from:
 		// https://www.includehelp.com/c/infix-to-postfix-conversion-using-stack-with-c-program.aspx
-
+		
 		expression = expression.replaceAll("\\s+", "");
 		String postfix = "";
 		Stack<String> stack = new Stack<String>();
@@ -129,6 +148,7 @@ public class MathEngine {
 		stack.push("(");
 		expression += ")";
 		// 2.
+		String lastToken = "";
 		for (int i = 0; i < expression.length();) {
 			String token = getNextToken(expression, i);
 			if (arrayContains(bOperators, token)) {
@@ -147,6 +167,9 @@ public class MathEngine {
 					}
 				}
 				stack.push(token);
+			}else if (arrayContains(uOperators, token)) {
+				stack.push(token);
+
 			} else if (token.equals("(")) {
 				// 4.
 				stack.push("(");
@@ -167,6 +190,7 @@ public class MathEngine {
 			}
 
 			i += token.length();
+			lastToken  = token;
 		}
 
 		return postfix;
@@ -186,7 +210,7 @@ public class MathEngine {
 		String token = "";
 		for (int i = 0; i < part.length(); i++) {
 			char nextChar = part.charAt(i);
-			if (arrayContains(bOperators, nextChar + "") || arrayContains(specialOperators, nextChar + "")) {
+			if (arrayContains(uOperators, nextChar + "") ||arrayContains(bOperators, nextChar + "") || arrayContains(specialOperators, nextChar + "")) {
 				if (token.length() == 0) {
 					token += nextChar;
 					break;

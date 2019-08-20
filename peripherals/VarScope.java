@@ -1,4 +1,4 @@
-package emulation.peripherals;
+package peripherals;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -10,9 +10,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-import emulation.console;
-import emulation.fhdl.Bus;
-import emulation.fhdl.Script;
+import fhdl.lang.Bus;
+import fhdl.lang.Script;
 
 public class VarScope extends Peripheral {
 	// imperfect example of peripheral

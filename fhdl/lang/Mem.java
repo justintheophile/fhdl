@@ -1,4 +1,4 @@
-package emulation.fhdl;
+package fhdl.lang;
 
 import java.util.ArrayList;
 

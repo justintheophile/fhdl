@@ -1,4 +1,4 @@
-package emulation.fhdl;
+package fhdl.lang;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -6,17 +6,17 @@ import java.nio.file.Paths;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
-import emulation.console;
+import fhdl.testing.console;
 
 public class Script {
-	private String rawWords = "@ # entity goto goif nanoSleep milliSleep import end instance new print printHex printDec ";
+	private String rawWords = "@ # entity goto goif nanoSleep milliSleep import end instance new print printHex printDec clr ";
 	private String keywords[] = rawWords.split(" ");
 	private static final String keysymbols[] = "@ { } = ; ( ) , . + ^ ! * & |".split(" ");
 	private ScopeController scope;
 	private MathEngine math;
 	public int index, lineOffset;
 	private Stack<Integer> callStack = new Stack<Integer>();
-
+	public static boolean interupt;
 	public Script(ScopeController scope, MathEngine math) {
 		init();
 		this.math = math;
@@ -34,7 +34,6 @@ public class Script {
 		for (int i = 1; i < 32; i++) {
 			rawWords += "bus" + i + " ";
 			rawWords += "mem" + i + " ";
-
 		}
 		keywords = rawWords.split(" ");
 	}
@@ -66,11 +65,10 @@ public class Script {
 	
 	public void run(String script) throws ScriptException {
 		// imports
-		
-		
-		
+		index = 0;
 		try {
 			for (int i = 0; i < script.length();) {
+				if(interupt) { interupt = false; return;}
 				String token = getNextToken(script, i);
 				i += token.length();
 
@@ -126,11 +124,9 @@ public class Script {
 
 						} else if (token.equals("end")) {
 							// ends entity definition
-							String entityName = scope.getTopScope();
 							scope.exitScope();
 							i = callStack.pop();
 
-							console.log(entityName);
 						} else if (token.equals("instance")) {
 							// create instance of entity
 
@@ -153,9 +149,8 @@ public class Script {
 							entityParameters = entityParameters.replace(")", "");
 							// get entity template
 							Entity template = (Entity) scope.getVariable(entityName);
-
 							// enter instance scope
-							scope.enterScope(varName);
+							scope.enterScope(varName); 
 							// set parameters
 							String[] params = entityParameters.split(",");
 							for (int j = 0; j < params.length; j++) {
@@ -176,7 +171,7 @@ public class Script {
 							params = params.trim().substring(1, params.length() - 1);
 							String[] split = params.split(",");
 							int lineNumber = script.substring(0, i).split("\n").length - lineOffset;
-							console.log(3, "l" + lineNumber + ": "
+							console.log(2, "l" + lineNumber + ": "
 									+ math.evaluate(math.evaluate(64, split[0]).toInt(), split[1].trim()));
 						} else if (token.equals("printHex")) {
 							String params = getUntillTerminate(script, i, ")");
@@ -184,18 +179,16 @@ public class Script {
 
 							params = params.trim().substring(1, params.length() - 1);
 							String[] split = params.split(",");
-							int lineNumber = script.substring(0, i).split("\n").length - lineOffset;
-							console.log(3, "l" + lineNumber + ": "
-									+ math.evaluate(math.evaluate(64, split[0]).toInt(), split[1].trim()).toHex());
+							String out = split[1].trim()+":" + math.evaluate(math.evaluate(64, split[0]).toInt(), split[1].trim()).toHex();
+							console.log(2, out);
 						} else if (token.equals("printDec")) {
 							String params = getUntillTerminate(script, i, ")");
 							i += params.length();
 
 							params = params.trim().substring(1, params.length() - 1);
 							String[] split = params.split(",");
-							int lineNumber = script.substring(0, i).split("\n").length - lineOffset;
-							console.log(3, "l" + lineNumber + ": "
-									+ math.evaluate(math.evaluate(64, split[0]).toInt(), split[1].trim()).toInt());
+							String out = split[1].trim()+":" + math.evaluate(math.evaluate(64, split[0]).toInt(), split[1].trim()).toInt();
+							console.log(2, out);
 						} else if (token.equals("goto")) {
 							String params = getUntillTerminate(script, i, ")");
 							i += params.length();
@@ -206,7 +199,6 @@ public class Script {
 
 							if (script.contains("#" + tag)) {
 								i = script.indexOf("#" + tag);
-
 							}
 						} else if (token.equals("goif")) {
 							String params = getUntillTerminate(script, i, ")");
@@ -242,7 +234,11 @@ public class Script {
 							int nanos = math.evaluate(32, time).toInt();
 							nano(nanos);
 
-						} else if (token.startsWith("#")) {
+						} else if (token.equals("clr")) {
+							String params = getUntillTerminate(script, i, ")");
+							i += params.length();
+							console.logs.clear();
+						}else if (token.startsWith("#")) {
 							String comment = "";
 
 							for (int c = i; c < script.length(); c++) {
@@ -276,7 +272,6 @@ public class Script {
 							String var = getUntillTerminate(script, i, ";");
 							processVariable(token + " " + var);
 							i += var.length();
-
 						}
 					}
 				}
@@ -284,10 +279,10 @@ public class Script {
 
 			}
 		} catch (Exception e) {
-			int lineNumber = script.substring(0, index).split("\n").length;
-			int linei = ordinalIndexOf(script, "\n", lineNumber - 1);
-			String line = script.substring(linei + 1, ordinalIndexOf(script, "\n", lineNumber)).trim();
-			console.log(5, "error: \n line " + lineNumber + " ->  \n  > " + line);
+//			int lineNumber = script.substring(0, index).split("\n").length;
+//			int linei = ordinalIndexOf(script, "\n", lineNumber - 1);
+//			String line = script.substring(linei + 1, ordinalIndexOf(script, "\n", lineNumber)).trim();
+//			console.log(5, "error: \n line " + lineNumber + " ->  \n  > " + line);
 			e.printStackTrace();
 			System.exit(0);
 		}
@@ -333,11 +328,11 @@ public class Script {
 		name = name.replace("=", "").replace(";", "").trim();
 
 		if (type.length() > 0) {
+
 			// initializing variable
 			if (type.startsWith("bus")) {
 				Bus bus = null;
 				int width = Integer.parseInt(type.substring(3));
-
 				if (value.length() > 0) {
 					bus = math.evaluate(width, value);
 				} else {
@@ -389,9 +384,12 @@ public class Script {
 
 		} else {
 			// set after initialization
+
 			Variable target = scope.getVariable(name);
+
 			if (target instanceof Bus) {
 				Bus bus = null;
+
 				if (value.length() > 0) {
 					bus = math.evaluate(((Bus) target).getWidth(), value);
 				}

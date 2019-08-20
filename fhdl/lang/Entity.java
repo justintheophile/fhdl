@@ -1,6 +1,4 @@
-package emulation.fhdl;
-
-import java.util.HashMap;
+package fhdl.lang;
 
 public class Entity extends Variable{
 	public int start, end;

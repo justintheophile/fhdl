@@ -1,11 +1,11 @@
-package emulation.fhdl;
+package fhdl.lang;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import emulation.console;
+import fhdl.testing.console;
 
 public class ScopeController {
 
@@ -30,7 +30,7 @@ public class ScopeController {
 	public void exitScope() {
 		console.log(0,"exiting scope: "+ getScope());
 		ArrayList<String> marked = new ArrayList<String>();
-		Iterator it = variables.entrySet().iterator();
+		Iterator<?> it = variables.entrySet().iterator();
 		while (it.hasNext()) {
 			Map.Entry pair = (Map.Entry) it.next();
 			if(pair.getKey().toString().startsWith(getScope()) && !pair.getKey().toString().endsWith("_")) {

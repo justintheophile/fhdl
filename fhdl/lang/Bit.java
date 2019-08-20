@@ -1,4 +1,4 @@
-package emulation.fhdl;
+package fhdl.lang;
 
 public class Bit {
 	private boolean value;
