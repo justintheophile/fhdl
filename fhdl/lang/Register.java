@@ -1,29 +1,29 @@
 package fhdl.lang;
 
-public class Bus extends Variable {
+public class Register extends Variable {
 	Bit[] bits; // [width] downto [0]
 
-	public Bus(int width, int val) {
+	public Register(int width, int val) {
 		setWidth(width);
 		set(val);
 	}
 
-	public Bus(int width) {
+	public Register(int width) {
 		this(width, 0);
 	}
 
-	public Bus(String value) {
+	public Register(String value) {
 		this(value.length(), 0);
 		set(value);
 	}
 
-	public Bus(Bus b) {
+	public Register(Register b) {
 		this(b.getWidth(), 0);
 		set(b);
 	}
 
-	public Bus subBus(int high, int low) {
-		Bus b = new Bus(high - low + 1, 0);
+	public Register subBus(int high, int low) {
+		Register b = new Register(high - low + 1, 0);
 		for (int i = low; i <= high; i++) {
 			b.bits[i - low] = this.bits[i];
 		}
@@ -40,25 +40,28 @@ public class Bus extends Variable {
 
 	public void set(String s) {
 		// binary
+		//System.out.println(s.length() + " > " + bits.length);
 		char[] array = s.toCharArray();
 		for (int i = 0; i < bits.length; i++) {
 			bits[i] = new Bit(0);
 		}
 		for (int i = 0; i < array.length; i++) {
-			bits[array.length - 1 - i].setValue(array[i]);
+			int index = array.length - 1 - i;
+			if (index >= 0 && index < bits.length) {
+				bits[array.length - 1 - i].setValue(array[i]);
+			}
 		}
 	}
 
 	public void set(int v) {
-		String s = Integer.toBinaryString((int) (Math.abs(v % Math.pow(2, bits.length))));
-		set(s);
+		set(Integer.toBinaryString((int) (Math.abs(v % Math.pow(2, bits.length)))));
 	}
 
 	public void set(boolean b) {
 		set(b ? "1" : "0");
 	}
 
-	public void set(Bus b) {
+	public void set(Register b) {
 		set(b.toInt());
 	}
 
@@ -82,8 +85,8 @@ public class Bus extends Variable {
 		return Integer.toHexString(toInt());
 	}
 
-	public Bus or(Bus b) {
-		Bus newBus = new Bus(this.bits.length);
+	public Register or(Register b) {
+		Register newBus = new Register(this.bits.length);
 		for (int i = 0; i < Math.min(b.getWidth(), this.getWidth()); i++) {
 			newBus.bits[i] = b.bits[i].or(this.bits[i]);
 		}
@@ -91,9 +94,9 @@ public class Bus extends Variable {
 		return newBus;
 	}
 
-	public Bus and(Bus b) {
+	public Register and(Register b) {
 
-		Bus newBus = new Bus(this.bits.length);
+		Register newBus = new Register(this.bits.length);
 		for (int i = 0; i < Math.min(b.getWidth(), this.getWidth()); i++) {
 			newBus.bits[i] = b.bits[i].and(this.bits[i]);
 		}
@@ -101,9 +104,9 @@ public class Bus extends Variable {
 		return newBus;
 	}
 
-	public Bus xor(Bus b) {
+	public Register xor(Register b) {
 
-		Bus newBus = new Bus(this.bits.length);
+		Register newBus = new Register(this.bits.length);
 		for (int i = 0; i < Math.min(b.getWidth(), this.getWidth()); i++) {
 			newBus.bits[i] = b.bits[i].xor(this.bits[i]);
 		}
@@ -111,24 +114,24 @@ public class Bus extends Variable {
 		return newBus;
 	}
 
-	public Bus leftShift(Bus by) {
-		Bus copy = new Bus(this);
+	public Register leftShift(Register by) {
+		Register copy = new Register(this);
 		int val = copy.toInt();
 		val = val << by.toInt();
 		copy.set(val);
 		return copy;
 	}
 
-	public Bus rightShift(Bus by) {
-		Bus copy = new Bus(this);
+	public Register rightShift(Register by) {
+		Register copy = new Register(this);
 		int val = copy.toInt();
 		val = val >> by.toInt();
 		copy.set(val);
 		return copy;
 	}
 
-	public Bus not() {
-		Bus newBus = new Bus(this.bits.length);
+	public Register not() {
+		Register newBus = new Register(this.bits.length);
 		for (int i = 0; i < this.bits.length; i++) {
 			newBus.bits[i] = this.bits[i].not();
 		}
@@ -136,12 +139,12 @@ public class Bus extends Variable {
 		return newBus;
 	}
 
-	public Bus nand(Bus b) {
+	public Register nand(Register b) {
 		return this.and(b).not();
 	}
 
-	public Bus twosCompliment() {
-		return new Bus(this.bits.length, this.not().toInt() + 1);
+	public Register twosCompliment() {
+		return new Register(this.bits.length, this.not().toInt() + 1);
 	}
 
 	public int getWidth() {
@@ -151,8 +154,8 @@ public class Bus extends Variable {
 
 	@Override
 	public void set(Variable v) {
-		if (v instanceof Bus)
-			set(((Bus) v));
+		if (v instanceof Register)
+			set(((Register) v));
 	}
 
 	@Override
@@ -162,6 +165,6 @@ public class Bus extends Variable {
 	}
 
 	public Object get(int index) {
-		return getBitValue(index) ? new Bus(1, 1) : new Bus(1, 0);
+		return getBitValue(index) ? new Register(1, 1) : new Register(1, 0);
 	}
 }

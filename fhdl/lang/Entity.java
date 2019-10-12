@@ -13,7 +13,7 @@ public class Entity extends Variable{
 		return start +"";
 	}
 	public void set(Variable v) {
-		// TODO Auto-generated method stub
+		
 	}
 
 

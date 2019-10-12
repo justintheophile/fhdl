@@ -20,16 +20,16 @@ public class MathEngine {
 		this.scope = scope;
 	}
 
-	public Bus evaluate(int width, String expression) {
-		Stack<Bus> stack = new Stack<Bus>();
+	public Register evaluate(int width, String expression) {
+		Stack<Register> stack = new Stack<Register>();
 		String[] tokens = convertToPostFix(expression).split(",");
 		boolean not = false;
 		for (String token : tokens) {
 			if (arrayContains(bOperators, token)) {
-				Bus right = stack.pop();
-				Bus left = stack.pop();
+				Register right = stack.pop();
+				Register left = stack.pop();
 
-				Bus temp = new Bus(width, 0);
+				Register temp = new Register(width, 0);
 
 				if (token.equals("+") || token.equals("|")) {
 					temp = left.or(right);
@@ -38,21 +38,21 @@ public class MathEngine {
 				} else if (token.equals("^")) {
 					temp = left.xor(right);
 				} else if (token.equals(">")) {
-					Bus bb = new Bus(left);
+					Register bb = new Register(left);
 					bb = left.rightShift(right);
 					temp.set(bb);
 
 				} else if (token.equals("<")) {
-					Bus bb = new Bus(left);
+					Register bb = new Register(left);
 					bb = left.leftShift(right);
 					temp.set(bb);
 				} else if (token.equals(":")) {
-					temp = new Bus(left.getWidth(), left.toInt() == right.toInt() ? 1 : 0);
+					temp = new Register(left.getWidth(), left.toInt() == right.toInt() ? 1 : 0);
 				}
 				stack.push(temp);
 			}else if(arrayContains(uOperators, token)) {
-				Bus top = stack.pop();
-				Bus temp = new Bus(width, 0);
+				Register top = stack.pop();
+				Register temp = new Register(width, 0);
 
 				if(token.equals("!")) {
 					temp = top.not();
@@ -69,8 +69,8 @@ public class MathEngine {
 		return stack.pop();
 	}
 
-	private Bus getFromToken(int width, String token) {
-		Bus bus = new Bus(width);
+	private Register getFromToken(int width, String token) {
+		Register bus = new Register(width);
 		boolean not = token.startsWith("!");
 		boolean twos = token.startsWith("-");
 		if (not || twos)
@@ -79,7 +79,7 @@ public class MathEngine {
 			// bit select
 			String indexString = token.substring(token.indexOf("[") + 1, token.indexOf("]"));
 			String variable = token.substring(0, token.indexOf("["));
-			Bus bb = (Bus) scope.getVariable(variable);
+			Register bb = (Register) scope.getVariable(variable);
 			if (!indexString.contains("..")) {
 				int index = decode(indexString);
 
@@ -87,7 +87,7 @@ public class MathEngine {
 			} else {
 				int high = decode(indexString.substring(0, indexString.indexOf("..")).trim());
 				int low = decode(indexString.substring(indexString.indexOf("..") + 2).trim());
-				Bus sub = bb.subBus(high, low);
+				Register sub = bb.subBus(high, low);
 				bus.set(sub);
 			}
 		} else if (token.contains("{")) {
@@ -96,9 +96,9 @@ public class MathEngine {
 			String variable = token.substring(0, token.indexOf("{")).trim();
 			Mem bb = (Mem) scope.getVariable(variable);
 
-			Bus index = evaluate((int) 31, indexString);
+			Register index = evaluate((int) 31, indexString);
 
-			bus.set((Bus) bb.get(index.toInt()));
+			bus.set((Register) bb.get(index.toInt()));
 
 		} else if (token.length() >= 1 && arrayContains(legalVarNameStarters, token.substring(0, 1))) {
 			// variable
@@ -107,7 +107,7 @@ public class MathEngine {
 				// throw error here
 			} else {
 				// bus.setWidth(v.getWidth());
-				if (v instanceof Bus)
+				if (v instanceof Register)
 					bus.set((String) v.get());
 				else
 					bus.set(decode((String) v.get()));

@@ -3,15 +3,15 @@ package fhdl.lang;
 import java.util.ArrayList;
 
 public class Mem extends Variable {
-	public ArrayList<Bus> list = new ArrayList<Bus>();
+	public ArrayList<Register> list = new ArrayList<Register>();
 	int width;
 
 	public Mem(int width) {
 		this.width = width;
 	}
 
-	public void add(Bus b) {
-		Bus temp = new Bus(width, 0);
+	public void add(Register b) {
+		Register temp = new Register(width, 0);
 		temp.set(b); // to comply with width constraints
 		list.add(b);
 	}
@@ -23,8 +23,8 @@ public class Mem extends Variable {
 	
 	public void set(Mem m) {
 		list.clear();
-		for(Bus b : m.list) {
-			add(new Bus(b));
+		for(Register b : m.list) {
+			add(new Register(b));
 		}
 	}
 

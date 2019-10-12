@@ -10,7 +10,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-import fhdl.lang.Bus;
+import fhdl.lang.Register;
 import fhdl.lang.Script;
 
 public class VarScope extends Peripheral {
@@ -18,12 +18,12 @@ public class VarScope extends Peripheral {
 	public int polingRate = 10;
 	public int ticks;
 	public String target;
-	public Bus targetValue;
+	public Register targetValue;
 	
 	Thread process;
 	ScopeScreen screen;
 
-	public ArrayList<Bus> history = new ArrayList<Bus>();
+	public ArrayList<Register> history = new ArrayList<Register>();
 
 	public VarScope(Script script, String target) {
 		super(script);
@@ -47,9 +47,9 @@ public class VarScope extends Peripheral {
 	}
 
 	public void update() {
-		targetValue = (Bus) script.getScopeController().getVariable(target);
+		targetValue = (Register) script.getScopeController().getVariable(target);
 		if (targetValue != null) {
-			history.add(new Bus(targetValue));
+			history.add(new Register(targetValue));
 
 		}
 	}
@@ -117,7 +117,7 @@ public class VarScope extends Peripheral {
 				for (int j = 0; j < targetValue.getWidth(); j++) {
 					boolean last = false;
 					for (int i = 0; i < scope.history.size(); i++) {
-						Bus bus = scope.history.get(i);
+						Register bus = scope.history.get(i);
 						boolean on = bus.getBitValue(j);
 						int onHeight = (on ? 1 : 0)*height;
 						g2d.drawLine(i*stretch, j*spacing - onHeight + topOffset ,(i+1)*stretch, j*spacing - onHeight + topOffset);

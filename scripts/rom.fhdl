@@ -11,9 +11,16 @@ entity PrintMem (mem8 rom)
     #PrintRom.stop
 end
 
-mem8 rom1 = {~10};
-rom1{3} = 67;
-instance printRom = PrintMem(rom1);
+# mem8 rom1 = {~10};
+# rom1{3} = 67;
+# instance printRom = PrintMem(rom1);
+# bus1 _gp01 = 1;
+# print(1, _gp01); 
 
-instance mult = 2xMultiplexer(0, 170, 33);
-#printDec(8, mult.result_);
+# instance mult = 2xMultiplexer(0, 170, 33);
+# printDec(8, mult.result_);
+reg2 test = 0b10;
+reg4 test4  = 0b1101;
+reg2 tt = 0;
+tt = test4 | test;
+print(16, tt);

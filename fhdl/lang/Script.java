@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 import fhdl.testing.console;
 
 public class Script {
-	private String rawWords = "@ # entity goto goif nanoSleep milliSleep import end instance new print printHex printDec clr ";
+	private String rawWords = "@ # entity goto goif nanoSleep milliSleep import end instance new print printHex printDec clr reg";
 	private String keywords[] = rawWords.split(" ");
 	private static final String keysymbols[] = "@ { } = ; ( ) , . + ^ ! * & |".split(" ");
 	private ScopeController scope;
@@ -17,6 +17,7 @@ public class Script {
 	public int index, lineOffset;
 	private Stack<Integer> callStack = new Stack<Integer>();
 	public static boolean interupt;
+
 	public Script(ScopeController scope, MathEngine math) {
 		init();
 		this.math = math;
@@ -55,20 +56,23 @@ public class Script {
 		String contents = "";
 		try {
 			contents = new String(Files.readAllBytes(Paths.get(path)));
-		
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return contents;
 	}
-	
+
 	public void run(String script) throws ScriptException {
 		// imports
 		index = 0;
 		try {
 			for (int i = 0; i < script.length();) {
-				if(interupt) { interupt = false; return;}
+				if (interupt) {
+					interupt = false;
+					return;
+				}
 				String token = getNextToken(script, i);
 				i += token.length();
 
@@ -107,16 +111,16 @@ public class Script {
 							i += entityScript.length();
 
 							newEntity.body = entityScript;
-						} else if(token.equals("import")) { 
-							String line = getUntillTerminate(script, i-7, ";");
-							String path = line.substring(line.indexOf(" "), line.length()-1).trim();
+						} else if (token.equals("import")) {
+							String line = getUntillTerminate(script, i - 7, ";");
+							String path = line.substring(line.indexOf(" "), line.length() - 1).trim();
 							String file = loadFile(path);
 							int lineCount = file.split("\n").length;
 							lineOffset += lineCount + 1;
 							script = script.replace(line, file + "\n");
 							console.log(1, "imported: " + path);
-							i = 0;
-						} else if (token.startsWith("bus") || token.startsWith("mem")) {
+							i -= 7;
+						} else if (token.startsWith("reg") || token.startsWith("bus") || token.startsWith("mem")) {
 							// initialize variable
 							String var = getUntillTerminate(script, i, ";");
 							processVariable(token + " " + var);
@@ -150,7 +154,7 @@ public class Script {
 							// get entity template
 							Entity template = (Entity) scope.getVariable(entityName);
 							// enter instance scope
-							scope.enterScope(varName); 
+							scope.enterScope(varName);
 							// set parameters
 							String[] params = entityParameters.split(",");
 							for (int j = 0; j < params.length; j++) {
@@ -179,7 +183,8 @@ public class Script {
 
 							params = params.trim().substring(1, params.length() - 1);
 							String[] split = params.split(",");
-							String out = split[1].trim()+":" + math.evaluate(math.evaluate(64, split[0]).toInt(), split[1].trim()).toHex();
+							String out = split[1].trim() + ":"
+									+ math.evaluate(math.evaluate(64, split[0]).toInt(), split[1].trim()).toHex();
 							console.log(2, out);
 						} else if (token.equals("printDec")) {
 							String params = getUntillTerminate(script, i, ")");
@@ -187,7 +192,8 @@ public class Script {
 
 							params = params.trim().substring(1, params.length() - 1);
 							String[] split = params.split(",");
-							String out = split[1].trim()+":" + math.evaluate(math.evaluate(64, split[0]).toInt(), split[1].trim()).toInt();
+							String out = split[1].trim() + ":"
+									+ math.evaluate(math.evaluate(64, split[0]).toInt(), split[1].trim()).toInt();
 							console.log(2, out);
 						} else if (token.equals("goto")) {
 							String params = getUntillTerminate(script, i, ")");
@@ -238,7 +244,7 @@ public class Script {
 							String params = getUntillTerminate(script, i, ")");
 							i += params.length();
 							console.logs.clear();
-						}else if (token.startsWith("#")) {
+						} else if (token.startsWith("#")) {
 							String comment = "";
 
 							for (int c = i; c < script.length(); c++) {
@@ -314,7 +320,7 @@ public class Script {
 		String type = "";
 		String name = "";
 		String value = "";
-		if (var.startsWith("bus") || var.startsWith("mem")) {
+		if (var.startsWith("bus")||var.startsWith("reg") || var.startsWith("mem")) {
 			// has type
 			type = var.substring(0, var.indexOf(" "));
 			var = var.substring(type.length());
@@ -330,17 +336,17 @@ public class Script {
 		if (type.length() > 0) {
 
 			// initializing variable
-			if (type.startsWith("bus")) {
-				Bus bus = null;
+			if (type.startsWith("bus")||type.startsWith("reg")) {
+				Register bus = null;
 				int width = Integer.parseInt(type.substring(3));
 				if (value.length() > 0) {
 					bus = math.evaluate(width, value);
 				} else {
-					bus = new Bus(width, 0);
+					bus = new Register(width, 0);
 				}
 				if (bus != null) {
 					scope.createVariable(name, bus);
-					Bus w = new Bus(8, bus.getWidth());
+					Register w = new Register(8, bus.getWidth());
 					if (name.endsWith("_")) {
 						scope.createVariable(name + ".width_", w);
 					} else {
@@ -363,14 +369,14 @@ public class Script {
 								// size of empty memory slots
 								int size = math.evaluate(31, e.replace("~", "")).toInt();
 								for (int j = 0; j < size; j++) {
-									mem.add(new Bus(width, 0));
+									mem.add(new Register(width, 0));
 								}
 							} else {
-								Bus w = math.evaluate(width, e);
+								Register w = math.evaluate(width, e);
 								mem.add(w);
 							}
 						}
-					}else {
+					} else {
 						Variable copy = scope.getVariable(value.trim());
 						if (copy instanceof Mem) {
 							mem.set((Mem) copy);
@@ -378,7 +384,7 @@ public class Script {
 							// type error
 						}
 					}
-				} 
+				}
 				scope.createVariable(name, mem);
 			}
 
@@ -387,11 +393,11 @@ public class Script {
 
 			Variable target = scope.getVariable(name);
 
-			if (target instanceof Bus) {
-				Bus bus = null;
+			if (target instanceof Register) {
+				Register bus = null;
 
 				if (value.length() > 0) {
-					bus = math.evaluate(((Bus) target).getWidth(), value);
+					bus = math.evaluate(((Register) target).getWidth(), value);
 				}
 				if (bus != null) {
 					target.set(bus);
@@ -409,10 +415,10 @@ public class Script {
 							// size of empty memory slots
 							int size = math.evaluate(31, e.replace("~", "")).toInt();
 							for (int j = 0; j < size; j++) {
-								mem.add(new Bus(width, 0));
+								mem.add(new Register(width, 0));
 							}
 						} else {
-							Bus w = math.evaluate(width, e);
+							Register w = math.evaluate(width, e);
 							mem.add(w);
 						}
 					}
