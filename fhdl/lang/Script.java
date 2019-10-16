@@ -117,7 +117,7 @@ public class Script {
 							String file = loadFile(path);
 							int lineCount = file.split("\n").length;
 							lineOffset += lineCount + 1;
-							script = script.replace(line, file + "\n");
+							script = script.replace(line, file + "\n\n\n");
 							console.log(1, "imported: " + path);
 							i -= 7;
 						} else if (token.startsWith("reg") || token.startsWith("bus") || token.startsWith("mem")) {
@@ -353,7 +353,6 @@ public class Script {
 						scope.createVariable(name + ".width", w);
 					}
 				} else {
-
 				}
 			} else if (type.startsWith("mem")) {
 				int width = Integer.parseInt(type.substring(3));

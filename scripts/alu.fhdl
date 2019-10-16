@@ -1,11 +1,13 @@
-import ./src/scripts/multiplexer.fhdl;
-
+entity Two_Multiplexer(bus1 selector, bus8 x1, bus8 x2)
+	bus8 tSelector = selector < 7 | selector < 6 | selector < 5 | selector < 4| selector < 3 | selector < 2 | selector < 1 | selector;
+	bus8 out_;
+	out_ = !tSelector & x1 | tSelector & x2; 
+end
 entity Adder_1(bus1 cin, bus1 a, bus1 b)
 	# add a and b together 
 	bus1 sum_ = (a ^ b) ^ cin;
 	bus1 cout_ = a & b | cin & (a ^ b);
 end
-
 entity Adder_4 (bus1 cin, bus4 a, bus4 b)
 	# 4bit adder
 	
@@ -17,7 +19,6 @@ entity Adder_4 (bus1 cin, bus4 a, bus4 b)
 	bus4 sum_ = add4.sum_ < 3 | add3.sum_ < 2 | add2.sum_ < 1 | add1.sum_;
 	bus1 cout_ = add4.cout_;
 end
-
 entity Adder_8 (bus1 cin, bus8 a, bus8 b)
 	# 8bit adder
 	instance add1 = Adder_4(cin, a[3..0], b[3..0]);
@@ -26,7 +27,6 @@ entity Adder_8 (bus1 cin, bus8 a, bus8 b)
 	bus8 sum_ = add2.sum_ < 4 | add1.sum_;
 	bus1 cout_ = add2.cout_;
 end
-
 entity Adder_16 (bus1 cin, bus16 a, bus16 b)
 	instance add1 = Adder_8(cin, a[7..0], b[7..0]);
 	bus1 c = add1.cout_; # not sure why but this needs to be set like this
@@ -34,4 +34,24 @@ entity Adder_16 (bus1 cin, bus16 a, bus16 b)
 	bus16 sum_ = add2.sum_ < 8 | add1.sum_;
 	bus1 cout_ = add2.cout_;
 end
-
+entity AND(bus16 a, bus16 b)
+	bus16 result_ = a & b;
+end
+entity OR(bus16 a, bus16 b)
+	bus16 result_ = a | b;
+end
+entity XOR(bus16 a, bus16 b)
+	bus16 result_ = a ^ b;
+end
+entity NOT(bus16 a)
+	bus16 result_ = !a;
+end
+entity LEFT_SHIFT(bus16 a, bus16 b)
+	bus16 result_ = a < b;
+end
+entity RIGHT_SHIFT(bus16 a, bus16 b)
+	bus16 result_ = a > b;
+end
+entity EQUALS(bus16 a, bus16 b)
+	bus16 result_ = a : b;
+end
