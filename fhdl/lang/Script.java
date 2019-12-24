@@ -118,7 +118,7 @@ public class Script {
 							int lineCount = file.split("\n").length;
 							lineOffset += lineCount + 1;
 							script = script.replace(line, file + "\n\n\n");
-							console.log(1, "imported: " + path);
+							//console.log(1, "imported: " + path);
 							i -= 7;
 						} else if (token.startsWith("reg") || token.startsWith("bus") || token.startsWith("mem")) {
 							// initialize variable
@@ -217,7 +217,6 @@ public class Script {
 							if (math.evaluate(16, condition).toInt() != 0) {
 								if (script.contains("#" + tag)) {
 									i = script.indexOf("#" + tag);
-
 								}
 							}
 						} else if (token.equals("milliSleep")) {
@@ -320,7 +319,7 @@ public class Script {
 		String type = "";
 		String name = "";
 		String value = "";
-		if (var.startsWith("bus")||var.startsWith("reg") || var.startsWith("mem")) {
+		if (var.startsWith("bus") || var.startsWith("reg") || var.startsWith("mem")) {
 			// has type
 			type = var.substring(0, var.indexOf(" "));
 			var = var.substring(type.length());
@@ -336,7 +335,7 @@ public class Script {
 		if (type.length() > 0) {
 
 			// initializing variable
-			if (type.startsWith("bus")||type.startsWith("reg")) {
+			if (type.startsWith("bus") || type.startsWith("reg")) {
 				Register bus = null;
 				int width = Integer.parseInt(type.substring(3));
 				if (value.length() > 0) {
@@ -389,58 +388,99 @@ public class Script {
 
 		} else {
 			// set after initialization
+			if (!name.contains("[")) {
+				Variable target = scope.getVariable(name);
 
-			Variable target = scope.getVariable(name);
+				if (target instanceof Register) {
+					Register bus = null;
 
-			if (target instanceof Register) {
-				Register bus = null;
+					if (value.length() > 0) {
+						bus = math.evaluate(((Register) target).getWidth(), value);
+					}
+					if (bus != null) {
+						target.set(bus);
+					}
+				} else if (target instanceof Mem) {
+					int width = ((Mem) target).width;
+					Mem mem = new Mem(width);
 
-				if (value.length() > 0) {
-					bus = math.evaluate(((Register) target).getWidth(), value);
-				}
-				if (bus != null) {
-					target.set(bus);
-				}
-			} else if (target instanceof Mem) {
-				int width = ((Mem) target).width;
-				Mem mem = new Mem(width);
+					if (value.contains("{")) {
+						String[] expressions = value.replace("{", "").replace("}", "").replace(";", "").split(",");
 
-				if (value.contains("{")) {
-					String[] expressions = value.replace("{", "").replace("}", "").replace(";", "").split(",");
-
-					for (String e : expressions) {
-						e = e.trim();
-						if (e.startsWith("~")) {
-							// size of empty memory slots
-							int size = math.evaluate(31, e.replace("~", "")).toInt();
-							for (int j = 0; j < size; j++) {
-								mem.add(new Register(width, 0));
+						for (String e : expressions) {
+							e = e.trim();
+							if (e.startsWith("~")) {
+								// size of empty memory slots
+								int size = math.evaluate(31, e.replace("~", "")).toInt();
+								for (int j = 0; j < size; j++) {
+									mem.add(new Register(width, 0));
+								}
+							} else {
+								Register w = math.evaluate(width, e);
+								mem.add(w);
 							}
+						}
+					} else {
+						Variable copy = scope.getVariable(value.trim());
+						if (copy instanceof Mem) {
+							mem.set((Mem) copy);
 						} else {
-							Register w = math.evaluate(width, e);
-							mem.add(w);
+							// type error
 						}
 					}
-				} else {
-					Variable copy = scope.getVariable(value.trim());
-					if (copy instanceof Mem) {
-						mem.set((Mem) copy);
+					target.set(mem);
+				} else if (target == null && name.contains("{")) {
+					// set mem slot value
+					target = scope.getVariable(name.substring(0, name.indexOf("{")).trim());
+					String indexString = name.substring(name.indexOf("{") + 1, name.indexOf("}")).trim();
+					if (target != null) {
+						Mem m = (Mem) target;
+						int index = math.evaluate(31, indexString).toInt();
+
+						m.list.get(index).set(math.evaluate(m.width, value));
 					} else {
-						// type error
+						// error
 					}
 				}
-				target.set(mem);
-			} else if (target == null && name.contains("{")) {
-				// set mem slot value
-				target = scope.getVariable(name.substring(0, name.indexOf("{")).trim());
-				String indexString = name.substring(name.indexOf("{") + 1, name.indexOf("}")).trim();
-				if (target != null) {
-					Mem m = (Mem) target;
-					int index = math.evaluate(31, indexString).toInt();
+			} else {
+				String realName = name.substring(0, name.indexOf("["));
+				String selection = name.substring(name.indexOf("[") + 1, name.indexOf("]"));
 
-					m.list.get(index).set(math.evaluate(m.width, value));
+				/// System.out.println(realName + "-> " + selection);
+
+				Variable target = scope.getVariable(realName);
+				Register targetRegister = (Register) target;
+				Register expressionValue = null;
+
+				if (target instanceof Register) {
+					if (value.length() > 0) {
+						expressionValue = math.evaluate(((Register) target).getWidth(), value);
+					}
+				}
+				if (selection.contains("..")) {
+					// range of bits selected
+					// TODO add error checking
+					String left = selection.substring(0, selection.indexOf("..")).trim();
+					String right = selection.substring(selection.indexOf("..") + 2).trim();
+					Register leftRegister = math.evaluate(31, left);
+					Register rightRegister = math.evaluate(31, right);
+					int leftVal = leftRegister.toInt();
+					int rightVal = rightRegister.toInt();
+
+					int highVal = Math.max(leftVal, rightVal);
+					int lowVal = Math.min(leftVal, rightVal);
+
+					int range = highVal - lowVal;
+					for (int i = 0; i < range + 1; i++) {
+						int index = i + lowVal;
+						targetRegister.set(index, expressionValue.getBitValue(i));
+					}
 				} else {
-					// error
+					// one bit selected
+					Register selectionRegister = math.evaluate(31, selection);
+					int index = selectionRegister.toInt();
+					targetRegister.set(index, expressionValue.getBitValue(0));
+
 				}
 			}
 		}

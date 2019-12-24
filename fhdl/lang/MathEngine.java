@@ -50,17 +50,16 @@ public class MathEngine {
 					temp = new Register(left.getWidth(), left.toInt() == right.toInt() ? 1 : 0);
 				}
 				stack.push(temp);
-			}else if(arrayContains(uOperators, token)) {
+			} else if (arrayContains(uOperators, token)) {
 				Register top = stack.pop();
 				Register temp = new Register(width, 0);
 
-				if(token.equals("!")) {
+				if (token.equals("!")) {
 					temp = top.not();
-				}else if(token.equals("-")) {
+				} else if (token.equals("-")) {
 					temp = top.twosCompliment();
 				}
 				stack.push(temp);
-				
 
 			} else {
 				stack.push(getFromToken(width, token));
@@ -85,9 +84,16 @@ public class MathEngine {
 
 				bus.set(bb.getBitValue(index));
 			} else {
-				int high = decode(indexString.substring(0, indexString.indexOf("..")).trim());
-				int low = decode(indexString.substring(indexString.indexOf("..") + 2).trim());
-				Register sub = bb.subBus(high, low);
+				String left = indexString.substring(0, indexString.indexOf("..")).trim();
+				String right = indexString.substring(indexString.indexOf("..") + 2).trim();
+				Register leftRegister = evaluate(31, left);
+				Register rightRegister = evaluate(31, right);
+				int leftVal = leftRegister.toInt();
+				int rightVal = rightRegister.toInt();
+
+				int highVal = Math.max(leftVal, rightVal);
+				int lowVal = Math.min(leftVal, rightVal);
+				Register sub = bb.subBus(highVal, lowVal);
 				bus.set(sub);
 			}
 		} else if (token.contains("{")) {
@@ -139,7 +145,7 @@ public class MathEngine {
 	private String convertToPostFix(String expression) {
 		// algorithm from:
 		// https://www.includehelp.com/c/infix-to-postfix-conversion-using-stack-with-c-program.aspx
-		
+
 		expression = expression.replaceAll("\\s+", "");
 		String postfix = "";
 		Stack<String> stack = new Stack<String>();
@@ -167,7 +173,7 @@ public class MathEngine {
 					}
 				}
 				stack.push(token);
-			}else if (arrayContains(uOperators, token)) {
+			} else if (arrayContains(uOperators, token)) {
 				stack.push(token);
 
 			} else if (token.equals("(")) {
@@ -190,7 +196,7 @@ public class MathEngine {
 			}
 
 			i += token.length();
-			lastToken  = token;
+			lastToken = token;
 		}
 
 		return postfix;
@@ -210,7 +216,8 @@ public class MathEngine {
 		String token = "";
 		for (int i = 0; i < part.length(); i++) {
 			char nextChar = part.charAt(i);
-			if (arrayContains(uOperators, nextChar + "") ||arrayContains(bOperators, nextChar + "") || arrayContains(specialOperators, nextChar + "")) {
+			if (arrayContains(uOperators, nextChar + "") || arrayContains(bOperators, nextChar + "")
+					|| arrayContains(specialOperators, nextChar + "")) {
 				if (token.length() == 0) {
 					token += nextChar;
 					break;

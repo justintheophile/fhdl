@@ -53,6 +53,10 @@ public class Register extends Variable {
 		}
 	}
 
+	public void set(int index, boolean value) {
+		bits[index].setValue(value);
+	}
+	
 	public void set(int v) {
 		set(Integer.toBinaryString((int) (Math.abs(v % Math.pow(2, bits.length)))));
 	}

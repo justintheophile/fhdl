@@ -12,7 +12,7 @@ public class Main {
 		
 		//Peripheral scope = (Peripheral) new VarScope(script, "count");
 		//scope.on();
-		script.runFile("./src/scripts/rom.fhdl");
+		script.runFile("./src/scripts/test.fhdl");
 		//scope.off();
 	}
 

@@ -1,0 +1,6 @@
+reg8 reg = 0xf;
+mem8 rom1 ={~5, reg};
+reg8 rr = rom1{0};
+rr[4..0] = 0b1100;
+print(8, rr);
+print(8, rom1{5});
